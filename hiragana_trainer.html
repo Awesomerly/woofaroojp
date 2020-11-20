@@ -1,0 +1,162 @@
+<style>
+	.outer {
+		display: table;
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
+	}
+
+	.middle {
+		display: table-cell;
+		vertical-align: middle;
+	}
+
+	.inner {
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
+	}
+	
+	.centered {
+		text-align: center; 
+		line-height:0.9;
+		color:white;
+	}
+	
+	body {
+		<!-- min-height: 400px; -->
+		<!-- max-height: 50% -->
+		position: relative;
+		vertical-align:middle;
+	}
+</style>
+
+<body style="background-color:#202020">
+	<div class="outer">
+		<div class="middle">
+			<div class="inner">
+				<div class="centered">
+					<h1 id="problem">higana</h1>
+					<button id="reset">RESET</button>
+					<input id="solution">
+					<button id="confirm">OK</button><br><br>
+					<span id="right">right answers: 0</span><br>
+					<span id="wrong">wrong answers: 0</span><br>
+					<span id="total">total answers: 0</span><br>
+					Learn first <input id="amt" size="2" value="73"> items<br>
+					<input id="problemlength" size="1" value="1"> character(s) per round
+					<p id="result"></p>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script>
+statsHTML = {}
+statsHTML.right = document.getElementById("right")
+statsHTML.wrong = document.getElementById("wrong")
+statsHTML.total = document.getElementById("total")
+
+var key = [["a","あ"], ["i","い"], ["u","う"], ["e","え"], ["o","お"],
+		   ["ka","か"],["ki","き"],["ku","く"],["ke","け"],["ko","こ"], //10
+		   ["ga","が"],["gi","ぎ"],["gu","ぐ"],["ge","げ"],["go","ご"],
+		   ["sa","さ"],["shi","し"],["su","す"],["se","せ"],["so","そ"], //20
+		   ["za","ざ"],["ji","じ"],["zu","ず"],["ze","ぜ"],["zo","ぞ"],
+		   ["ta","た"],["chi","ち"],["tsu","つ"],["te","て"],["to","と"], //30
+		   ["da","だ"],["ji","ぢ"],["dzu","づ"],["de","で"],["do","ど"],
+		   ["na","な"],["ni","に"],["nu","ぬ"],["ne","ね"],["no","の"], //40
+		   ["ha","は"],["hi","ひ"],["fu","ふ"],["he","へ"],["ho","ほ"],
+		   ["ba","ば"],["bi","び"],["bu","ぶ"],["be","べ"],["bo","ぼ"], //50
+		   ["pa","ぱ"],["pi","ぴ"],["pu","ぷ"],["pe","ぺ"],["po","ぽ"],
+		   ["ma","ま"],["mi","み"],["mu","む"],["me","め"],["mo","も"], //60
+		   ["ya","や"],           ["yu","ゆ"],           ["yo","よ"],
+		   ["ra","ら"],["ri","り"],["ru","る"],["re","れ"],["ro","ろ"], //68
+		   ["wa","わ"],["wi","ゐ"],           ["we","ゑ"],["wo","を"],
+		   ["n","ん"]]
+	
+function getRandomInt(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
+var numbers = []
+var lastnumber = []
+var score = {}
+var wronganswermode = false
+score.right = 0
+score.wrong = 0
+
+function Clicked(){
+	if(document.getElementById("solution").value == ""){
+		return
+	}
+	var correct = (numbers[0] == document.getElementById("solution").value)
+	if(correct){
+		if(!wronganswermode){
+			document.getElementById("result").innerHTML = "that is very correct you are very smart <span style=\"color:green\">" + numbers[1] + " is indeed " + numbers[0] + "</span>"
+			score.right = score.right + 1
+		}
+		wronganswermode=false
+	}else{
+		score.wrong = score.wrong + 1
+		statsHTML.wrong.innerHTML = "wrong answers: " + score.wrong
+		statsHTML.total.innerHTML = "total answers: " + (score.right + score.wrong)
+		document.getElementById("result").innerHTML = "this is the dumbest answer ever <span style=\"color:red\">" + numbers[1] + " is obviously " + numbers[0] + " not " + document.getElementById("solution").value + "</span>"
+		document.getElementById("solution").value = "" // leave blank
+		wronganswermode=true;return
+	}
+	statsHTML.right.innerHTML = "right answers: " + score.right
+	statsHTML.wrong.innerHTML = "wrong answers: " + score.wrong
+	statsHTML.total.innerHTML = "total answers: " + (score.right + score.wrong)
+	init()
+	document.getElementById("solution").value = "" // leave blank
+}
+
+var solution = document.getElementById("solution");
+solution.addEventListener("keydown", function(event) {
+	if (event.keyCode === 13) {
+	 document.getElementById("confirm").click();
+	}
+})
+
+function Reset(){
+	lastnumber = []
+	score = {}
+	wronganswermode = false
+	score.right = 0
+	score.wrong = 0
+	init()
+	statsHTML.right.innerHTML = "right answers: " + score.right
+	statsHTML.wrong.innerHTML = "wrong answers: " + score.wrong
+	statsHTML.total.innerHTML = "total answers: " + (score.right + score.wrong)
+	document.getElementById("result").innerHTML = ""
+	document.getElementById("solution").value = "" // leave blank
+}
+
+function init(){
+	//yea
+	lastnumber=numbers //deduping
+	var stringlen = document.getElementById("problemlength").value
+	if(stringlen<2){
+		while(numbers==lastnumber){
+			numbers = key[getRandomInt(0, Math.min(Math.max(document.getElementById("amt").value,2),key.length))]
+		}
+	}else{
+		numbers = ["",""]
+		for(i=0;i<stringlen;i++){
+			var x = getRandomInt(0, Math.min(Math.max(document.getElementById("amt").value,2),key.length))
+			numbers[0] = numbers[0] + key[x][0]
+			numbers[1] = numbers[1] + key[x][1]
+		}
+	}
+	document.getElementById("problem").innerHTML = numbers[1]
+}
+
+init()
+document.getElementById("confirm").onclick = Clicked
+document.getElementById("reset").onclick = Reset
+ </script>
